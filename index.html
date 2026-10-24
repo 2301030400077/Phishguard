@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}PhishGuard | Check a URL{% endblock %}
+{% block content %}
+<section class="hero-section">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="status-dot"></span> Explainable URL risk analysis</div>
+      <h1>Pause before you <span class="text-accent">click.</span></h1>
+      <p class="hero-lead">PhishGuard uses machine learning to assess URL patterns and explain the signals behind its
+        prediction.</p>
+      <div class="trust-note"><span class="shield-icon">✓</span><span><strong>Privacy first</strong><br>We analyze the
+          URL text only. We never open the submitted website.</span></div>
+    </div>
+    <div class="scan-card" id="check-url">
+      <div class="card-kicker">URL CHECKER <span class="live-pill">READY</span></div>
+      <h2>Analyze a link</h2>
+      <p class="muted">Paste a URL below to inspect its characteristics.</p>
+      {% if error %}<div class="alert alert-danger py-2" role="alert">{{ error }}</div>{% endif %}
+      <form action="{{ url_for('predict') }}" method="post" id="url-form">
+        <label for="url" class="form-label">Website URL</label>
+        <div class="input-wrap"><span aria-hidden="true">↗</span><input id="url" name="url" type="text" maxlength="2048"
+            placeholder="https://example.com/login" required autocomplete="url" spellcheck="false"></div>
+        <div class="form-hint">Do not enter passwords or personal information.</div>
+        <button class="btn btn-primary w-100 analyze-btn" type="submit"><span>Analyze URL</span><span
+            aria-hidden="true">→</span></button>
+      </form>
+      <div class="card-foot"><span class="lock-icon">▣</span> No browsing · No URL history stored</div>
+    </div>
+  </div>
+</section>
+<section class="feature-strip">
+  <div class="container row g-4 mx-auto">
+    <div class="col-md-4">
+      <div class="feature-item"><span class="feature-number">01</span>
+        <div>
+          <h3>Inspect</h3>
+          <p>Measure structural patterns in a URL without visiting it.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-item"><span class="feature-number">02</span>
+        <div>
+          <h3>Classify</h3>
+          <p>Use a trained Random Forest model to estimate risk.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-item"><span class="feature-number">03</span>
+        <div>
+          <h3>Understand</h3>
+          <p>Review the model signals that shaped the result.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Analysis | PhishGuard{% endblock %}
+{% block content %}
+<section class="page-section">
+  <div class="container narrow-container">
+    <a class="back-link" href="{{ url_for('home') }}">&larr; Analyze another URL</a>
+    <div class="result-card">
+      <div class="eyebrow">URL ANALYSIS</div>
+      <h1>Analysis result</h1>
+      <p class="muted submitted-url">{{ submitted_url }}</p>
+
+      {% if unavailable %}
+      <div class="alert alert-warning" role="alert">
+        {{ model_error or 'The model is not available. Follow the training steps in the README, then try again.' }}
+      </div>
+      {% endif %}
+
+      {% if prediction_error %}
+      <div class="alert alert-danger" role="alert">
+        The prediction could not be completed. Please try again later.
+      </div>
+      {% endif %}
+
+      {% if result %}
+      {% set is_phishing = result['prediction'] == 1 %}
+      <div class="prediction-banner {{ 'risk-high' if is_phishing else 'risk-low' }}">
+        <span class="prediction-icon">{{ '!' if is_phishing else '✓' }}</span>
+        <div>
+          <div class="prediction-label">{{ result['label'] }}</div>
+          {% if result['phishing_probability'] is not none %}
+          <div class="prediction-probability">
+            Model phishing score: {{ '%.1f'|format(result['phishing_probability'] * 100) }}%
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if explanation_error %}
+      <div class="alert alert-warning mt-3" role="alert">{{ explanation_error }}</div>
+      {% endif %}
+
+      {% if explanation %}
+      <section class="result-section">
+        <h2>Why the model decided this</h2>
+        <p class="muted">
+          Each contribution shows how a URL text pattern influences the model.
+          Positive values push toward phishing; negative values push toward legitimate.
+        </p>
+        {% set scale = namespace(maximum=0) %}
+        {% for item in explanation['features'] %}
+        {% if item['contribution']|abs > scale.maximum %}{% set scale.maximum = item['contribution']|abs %}{% endif %}
+        {% endfor %}
+        <div class="shap-chart" role="img" aria-label="SHAP contributions to phishing probability">
+          {% for item in explanation['features'] %}
+          {% set bar_width = (item['contribution']|abs / scale.maximum * 50) if scale.maximum else 0 %}
+          <div class="shap-row">
+            <span class="shap-label">{{ item['name'].replace('_', ' ')|title }}</span>
+            <div class="shap-track">
+              <span class="shap-bar {{ 'positive' if item['contribution'] >= 0 else 'negative' }}"
+                data-left="{{ '%.2f'|format(50 - bar_width if item['contribution'] < 0 else 50) }}"
+                data-width="{{ '%.2f'|format(bar_width) }}"></span>
+              <span class="shap-zero"></span>
+            </div>
+            <span class="shap-value">{{ '%+.4f'|format(item['contribution']) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <script>
+          document.querySelectorAll('.shap-bar[data-left][data-width]').forEach((bar) => {
+            bar.style.left = `${bar.dataset.left}%`;
+            bar.style.width = `${bar.dataset.width}%`;
+          });
+        </script>
+        <ul class="contribution-list">
+          {% for item in explanation['features'] %}
+          <li>
+            <span>
+              <strong>{{ item['name'].replace('_', ' ')|title }}</strong>
+              <small>Value: {{ item['value'] }}</small>
+            </span>
+            <span class="contribution {{ 'positive' if item['contribution'] > 0 else 'negative' }}">
+              {{ '%+.4f'|format(item['contribution']) }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if explanation['features'] %}
+        <p class="plain-explanation">
+          The largest displayed signal was
+          <strong>{{ explanation['features'][0]['name'].replace('_', ' ')|title }}</strong>;
+          it {{ explanation['features'][0]['direction'] }} the model's phishing probability for this URL.
+        </p>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      <section class="result-section">
+        <h2>Extracted URL features</h2>
+        <div class="feature-values">
+          {% for name, value in result['features'].items() %}
+          <div><span>{{ name.replace('_', ' ')|title }}</span><strong>{{ value }}</strong></div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="recommendation {{ 'recommendation-risk' if is_phishing else 'recommendation-caution' }}">
+        <h2>Safety recommendation</h2>
+        {% if is_phishing %}
+        <p>
+          This URL has patterns the model associates with phishing. Avoid entering credentials or payment details,
+          and verify the link through the organization's official website or app.
+        </p>
+        {% else %}
+        <p>
+          The model found fewer phishing-associated patterns. This does not establish that the website is safe.
+          Check the domain carefully and avoid sharing sensitive information unless you trust the site.
+        </p>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      <p class="disclaimer">
+        Results are generated by a machine-learning model and may contain false positives or false negatives.
+        A legitimate prediction does not guarantee that a website is safe.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

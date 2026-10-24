@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}About | PhishGuard{% endblock %}
+{% block content %}
+<section class="page-section">
+    <div class="container narrow-container">
+        <div class="eyebrow">ABOUT THE PROJECT</div>
+        <h1>Make URL risk easier to understand.</h1>
+        <p class="page-lead">PhishGuard is a university minor project exploring explainable machine learning for
+            phishing URL detection.</p>
+        <div class="info-panel">
+            <h2>Project objectives</h2>
+            <ul>
+                <li>Extract measurable characteristics from URL text.</li>
+                <li>Train a Random Forest classifier on a documented labelled dataset.</li>
+                <li>Explain model outputs with feature contributions.</li>
+                <li>Encourage careful link handling without claiming a prediction guarantees safety.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

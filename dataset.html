@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Dataset | PhishGuard{% endblock %}
+{% block content %}
+<section class="page-section">
+  <div class="container narrow-container">
+    <div class="eyebrow">DATA & EVALUATION</div>
+    <h1>Transparent model reporting.</h1>
+    <p class="page-lead">PhishGuard uses the URL text and a shared lexical feature extractor. It does not use the
+      dataset's precomputed webpage features.</p>
+    <div class="info-panel">
+      <h2>Dataset source</h2>
+      <p><a href="https://archive.ics.uci.edu/dataset/967/phiusiil%2Bphishing%2Burl%2Bwebsite%2Bdataset"
+          rel="noreferrer">PhiUSIIL Phishing URL (Website), UCI Machine Learning Repository</a> (Prasad &amp; Chandra,
+        2024). The repository describes 235,795 URLs: 134,850 legitimate and 100,945 phishing. Dataset labels are 1 for
+        legitimate and 0 for phishing; PhishGuard maps these to 0 legitimate and 1 phishing.</p>
+      <p class="mb-0">The training script uses only the URL and label columns, removes missing, invalid, repeated, and
+        conflicting URL records, and groups the train/test split by hostname. The UCI data includes webpage-derived
+        fields; these are excluded to keep training aligned with URL-only prediction.</p>
+    </div>
+    {% if metrics %}<div class="info-panel">
+      <h2>Measured evaluation</h2>
+      <p>Held-out test set, grouped by hostname. These are the measurements from the latest local training run.</p>
+      <div class="metric-grid">{% for key in ['accuracy','precision','recall','f1'] %}<div><span>{{ key|title
+            }}</span><strong>{{ '%.4f'|format(metrics[key]) }}</strong></div>{% endfor %}</div>
+      <h3 class="mt-4">Confusion matrix</h3>
+      <p class="muted">Rows are actual classes, columns are predicted classes (legitimate, phishing).</p>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center">
+          <thead>
+            <tr>
+              <th>Actual / Predicted</th>
+              <th>Legitimate</th>
+              <th>Phishing</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Legitimate</th>
+              <td>{{ metrics.confusion_matrix[0][0] }}</td>
+              <td>{{ metrics.confusion_matrix[0][1] }}</td>
+            </tr>
+            <tr>
+              <th>Phishing</th>
+              <td>{{ metrics.confusion_matrix[1][0] }}</td>
+              <td>{{ metrics.confusion_matrix[1][1] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-secondary">Split: {{ metrics.split }} · Train: {{ metrics.train_rows }} · Test: {{
+        metrics.test_rows }} · Random state: {{ metrics.random_state }}</p>
+      <p class="small text-secondary">Clean rows: {{ metrics.dataset.clean_rows }} · Rejected or duplicate rows: {{
+        metrics.dataset.removed_rows }} · Legitimate: {{ metrics.dataset.class_counts_phishing_1['0'] }} · Phishing: {{
+        metrics.dataset.class_counts_phishing_1['1'] }}</p>
+    </div>
+    {% else %}<div class="info-panel">
+      <h2>Model evaluation</h2>
+      <p class="mb-0">No local model metrics are available yet. Run the documented training command; this page will then
+        show its measured scores. No demonstration scores are prefilled.</p>
+    </div>{% endif %}
+    <div class="info-panel">
+      <h2>Feature set</h2>
+      <p class="mb-0">URL length, hostname length, dots, hyphens, digits, special characters, subdomains, IP address
+        indicator, @ symbol, HTTPS indicator, suspicious keyword count, path length, query length, and parameter count.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
